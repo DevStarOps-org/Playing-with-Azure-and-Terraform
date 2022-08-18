@@ -1,0 +1,4 @@
+resource_group_name   = "ugdemo-shared-rg"
+storage_account_name  = "ugdemodso"
+container_name        = "tfstate"
+key                   = "local.tfstate"
