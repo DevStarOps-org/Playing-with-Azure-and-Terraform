@@ -1,0 +1,52 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "terraform init",
+      "type": "shell",
+      "runOptions": {},
+      "command": "terraform init -reconfigure -var-file=\"${workspaceFolder}/envs/local.tfvars\" -backend-config=\"${workspaceFolder}/envs/local.tfbackend\"",
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "/opt/microsoft/powershell/7/pwsh",
+          "args": [
+            "-command"
+          ]
+        }
+      }
+    },
+    {
+      "label": "terraform plan",
+      "type": "shell",
+      "runOptions": {},
+      "command": "terraform plan -input=false -var-file=\"${workspaceFolder}/envs/local.tfvars\" -out=\"${workspaceFolder}/envs/local.tfplan\"",
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "/opt/microsoft/powershell/7/pwsh",
+          "args": [
+            "-command"
+          ]
+        }
+      }
+    },
+    {
+      "label": "terraform apply",
+      "type": "shell",
+      "runOptions": {},
+      "command": "terraform apply -auto-approve \"${workspaceFolder}/envs/local.tfplan\"",
+      "problemMatcher": [],
+      "options": {
+        "shell": {
+          "executable": "/opt/microsoft/powershell/7/pwsh",
+          "args": [
+            "-command"
+          ]
+        }
+      }
+    }
+  ]
+}
