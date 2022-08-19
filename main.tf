@@ -24,6 +24,15 @@ resource "random_integer" "ri" {
   max = 99999
 }
 
+provider "github" {
+  token = var.github_token
+  owner = "devstarops-org"
+}
+
+data "github_user" "current" {
+  username = "devstarops"
+}
+
 variable "deploy_region" {
   type = string
   default = "westeurope"
@@ -35,6 +44,11 @@ variable "shared_resource_group_name" {
 
 variable "environment_name" {
   type = string
+}
+
+variable "github_token" {
+  type = string
+  sensitive = true
 }
 
 output "shared_resource_group_name" {
