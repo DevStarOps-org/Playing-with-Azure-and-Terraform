@@ -19,3 +19,10 @@ resource "github_actions_secret" "GITHUB_TOKEN" {
   secret_name      = "GH_TOKEN"
   plaintext_value  = var.github_token
 }
+
+# SNYK_TOKEN
+resource "github_actions_secret" "SNYK_TOKEN" {
+  repository       = data.github_repository.main.id
+  secret_name      = "SNYK_TOKEN"
+  plaintext_value  = var.snyk_token
+}
