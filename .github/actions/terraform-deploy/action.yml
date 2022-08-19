@@ -23,6 +23,9 @@ inputs:
   github_token:
     required: true
     type: string
+  snyk_token:
+    required: true
+    type: string    
 
 runs:
   using: "composite"
@@ -50,6 +53,7 @@ runs:
         ARM_SUBSCRIPTION_ID: ${{ inputs.ARM_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ inputs.ARM_TENANT_ID }}
         TF_VAR_github_token: ${{ inputs.github_token }}
+        TF_VAR_snyk_token: ${{ inputs.snyk_token }}
 
     - name: Terraform Apply
       shell: bash
