@@ -1,0 +1,167 @@
+name: Build and deploy .NET Core application to Web App
+on:
+  push:
+    branches:
+    - main
+    - deploy
+    paths-ignore:
+      - "*.md"
+      - "scripts/**"
+
+permissions:
+  contents: read
+
+env:
+  AZURE_WEBAPP_PACKAGE_PATH: Playing-with-Azure-and-Terraform/published
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 6.0.x
+  WORKING_DIRECTORY: src/Playing-with-Azure-and-Terraform
+  TerraformVersion: 1.2.4
+  DeployRegion: westeurope
+  SharedResourceGroup: ugdemo-shared-rg
+  SharedStorage: ugdemodso
+  SharedStorageContainer: tfstate
+
+jobs:
+  build:
+    name: "Build Application"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Restore
+      run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+    - name: Build
+      run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+    - name: Test
+      run: dotnet test "${{ env.WORKING_DIRECTORY }}" --no-build
+    - name: Publish
+      run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"    
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: webapp
+        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+    - name: Publish Actions
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: actions
+        path: .github/actions/
+
+  infra_test:
+    needs: build
+    name: "Deploy Test Infrastructure"
+    runs-on: ubuntu-latest
+    concurrency:
+      group: infra_test
+      cancel-in-progress: false
+    environment:
+      name: "test-infra"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Deploy terraform template
+        uses: ./.github/actions/terraform-deploy
+        with:
+          environmentName: test
+          terraformVersion: ${{ env.TerraformVersion }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          github_token: ${{ secrets.GH_TOKEN }}
+
+  app_test:
+    needs: infra_test
+    name: "Deploy Test Application"
+    runs-on: ubuntu-latest
+    concurrency:
+      group: app_test
+      cancel-in-progress: false
+    environment:
+      name: "test-app"
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download actions
+        uses: actions/download-artifact@v3
+        with:
+          name: actions
+          path: .github/actions/
+          
+      - name: Deploy app
+        uses: ./.github/actions/app-deploy
+        with:
+          AZURE_WEBAPP_PACKAGE_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+          AZURE_WEBAPP_RG: ${{ secrets.AZURE_WEBAPP_RG }}
+        
+  infra_production:
+    needs: infra_test
+    name: "Deploy Production Infrastructure"
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: infra_production
+      cancel-in-progress: false
+    environment:
+      name: "production-infra"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Deploy terraform template
+        uses: ./.github/actions/terraform-deploy
+        with:
+          environmentName: production
+          terraformVersion: ${{ env.TerraformVersion }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          github_token: ${{ secrets.GH_TOKEN }}
+
+  app_production:
+    needs: [ infra_production, app_test ]
+    name: "Deploy Production Application"
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: app_production
+      cancel-in-progress: false
+    environment:
+      name: "production-app"
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download actions
+        uses: actions/download-artifact@v3
+        with:
+          name: actions
+          path: .github/actions/
+          
+      - name: Deploy app
+        uses: ./.github/actions/app-deploy
+        with:
+          AZURE_WEBAPP_PACKAGE_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+          AZURE_WEBAPP_RG: ${{ secrets.AZURE_WEBAPP_RG }}
+        

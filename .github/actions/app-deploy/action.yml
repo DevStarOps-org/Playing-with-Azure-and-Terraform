@@ -1,0 +1,51 @@
+name: "app deploy to environment"
+description: "Deploy app the same for each environment"
+author: "devstarops"
+inputs:
+  AZURE_WEBAPP_PACKAGE_PATH:
+    required: true
+    type: string
+  ARM_CLIENT_ID:
+    required: true
+    type: string
+  ARM_SUBSCRIPTION_ID:
+    required: true
+    type: string
+  ARM_TENANT_ID:
+    required: true
+    type: string
+  AZURE_WEBAPP_NAME:
+    required: true
+    type: string
+  AZURE_WEBAPP_RG:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+        path: ${{ inputs.AZURE_WEBAPP_PACKAGE_PATH }}
+    
+    - uses: azure/login@v1
+      with:
+        client-id: ${{ inputs.ARM_CLIENT_ID }}
+        tenant-id: ${{ inputs.ARM_TENANT_ID }}
+        subscription-id: ${{ inputs.ARM_SUBSCRIPTION_ID }}
+    - name: Get publish profile
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.36.0
+        inlineScript: |
+          AZURE_WEBAPP_PROFILE=$(az webapp deployment list-publishing-profiles --name ${{ inputs.AZURE_WEBAPP_NAME }} --resource-group ${{ inputs.AZURE_WEBAPP_RG }} --subscription ${{ inputs.ARM_SUBSCRIPTION_ID }} --xml)
+          echo "AZURE_WEBAPP_PROFILE=$AZURE_WEBAPP_PROFILE" >> $GITHUB_ENV
+        
+    - name: Deploy to Azure WebApp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ inputs.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ env.AZURE_WEBAPP_PROFILE }}
+        package: ${{ inputs.AZURE_WEBAPP_PACKAGE_PATH }}

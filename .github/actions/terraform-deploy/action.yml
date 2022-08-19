@@ -1,0 +1,62 @@
+name: "terraform deploy to environment"
+description: "Deploy infra the same for each environment"
+author: "devstarops"
+inputs:
+  environmentName:
+    required: true
+    type: string
+  terraformVersion:
+    required: true
+    type: string
+  ARM_CLIENT_ID:
+    required: true
+    type: string
+  ARM_CLIENT_SECRET:
+    required: true
+    type: string
+  ARM_SUBSCRIPTION_ID:
+    required: true
+    type: string
+  ARM_TENANT_ID:
+    required: true
+    type: string
+  github_token:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ inputs.terraformVersion }}
+
+    - name: Terraform Init
+      shell: bash
+      run: terraform init -var-file="envs/${{ inputs.environmentName }}.tfvars" -backend-config="envs/${{ inputs.environmentName }}.tfbackend"
+      env:
+        ARM_CLIENT_ID: ${{ inputs.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ inputs.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ inputs.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ inputs.ARM_TENANT_ID }}
+
+    - name: Terraform Plan
+      shell: bash
+      run: terraform plan -input=false -var-file="envs/${{ inputs.environmentName }}.tfvars" -out="envs/${{ inputs.environmentName }}.tfplan"
+      env:
+        ARM_CLIENT_ID: ${{ inputs.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ inputs.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ inputs.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ inputs.ARM_TENANT_ID }}
+        TF_VAR_github_token: ${{ inputs.github_token }}
+
+    - name: Terraform Apply
+      shell: bash
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve "envs/${{ inputs.environmentName }}.tfplan"
+      env:
+        ARM_CLIENT_ID: ${{ inputs.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ inputs.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ inputs.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ inputs.ARM_TENANT_ID }}
