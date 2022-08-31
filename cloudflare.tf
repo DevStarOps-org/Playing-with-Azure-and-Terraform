@@ -48,11 +48,6 @@ resource "pkcs12_from_pem" "domain_pfx" {
   private_key_pem = tls_private_key.domain.private_key_pem
 }
 
-resource "local_sensitive_file" "domain_pfx" {
-  filename       = "resources/domain.pfx"
-  content = pkcs12_from_pem.domain_pfx.result  
-}
-
 variable "dns_record" {
   type = string
 }

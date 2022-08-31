@@ -43,12 +43,8 @@ resource "azurerm_app_service_certificate" "domain" {
   name                = "${var.environment_name}-domain-cert"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  pfx_blob            = filebase64("resources/domain.pfx")
+  pfx_blob            = pkcs12_from_pem.domain_pfx.result
   password            = random_uuid.pfx_pass.result
-
-  depends_on = [
-    local_sensitive_file.domain_pfx
-  ]
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "domain" {
@@ -73,4 +69,8 @@ output "app-ip" {
 
 output "url" {
   value = "https://${azurerm_linux_web_app.webapp.default_hostname}"
+}
+
+output "custom-url" {
+  value = "https://${var.hostname}"
 }
