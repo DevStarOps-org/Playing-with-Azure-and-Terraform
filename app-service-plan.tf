@@ -47,13 +47,19 @@ resource "azurerm_app_service_certificate" "domain" {
   password            = random_uuid.pfx_pass.result
 }
 
+resource "time_sleep" "wait_for_txt" {
+  depends_on = [cloudflare_record.txt-verify]
+
+  create_duration = "15s"
+}
+
 resource "azurerm_app_service_custom_hostname_binding" "domain" {
   hostname            = var.hostname
   app_service_name    = azurerm_linux_web_app.webapp.name
   resource_group_name = azurerm_resource_group.main.name
 
   depends_on = [
-    cloudflare_record.txt-verify
+    time_sleep.wait_for_txt
   ]
 }
 
