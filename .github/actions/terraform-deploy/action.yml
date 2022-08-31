@@ -69,7 +69,7 @@ runs:
 
     - name: Terraform Apply
       shell: bash
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.event_name == 'push'
       run: terraform apply -auto-approve "envs/${{ inputs.environmentName }}.tfplan"
       env:
         ARM_CLIENT_ID: ${{ inputs.ARM_CLIENT_ID }}
