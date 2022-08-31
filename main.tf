@@ -4,6 +4,14 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "=3.17.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 3.0"
+    }
+    pkcs12 = {
+      version = "0.0.7"
+      source = "chilicat/pkcs12"
+    }
   }
 
   required_version = "= 1.2.4"
@@ -15,6 +23,14 @@ terraform {
 provider "azurerm" {
   features {}
 }
+
+provider "cloudflare" {
+  api_client_logging = false
+  api_user_service_key = var.cloudflare_service_key
+  api_token = var.cloudflare_api_token
+}
+
+provider "pkcs12" {}
 
 data "azurerm_client_config" "current" {}
 
@@ -49,6 +65,20 @@ variable "environment_name" {
 variable "github_token" {
   type = string
   sensitive = true
+}
+
+variable "cloudflare_api_token" {
+  type = string
+  sensitive = true
+}
+
+variable "cloudflare_service_key" {
+  type = string
+  sensitive = true
+}
+
+variable "cloudflare_zone_id" {
+  type = string
 }
 
 output "shared_resource_group_name" {
