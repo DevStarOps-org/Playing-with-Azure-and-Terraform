@@ -26,3 +26,20 @@ resource "github_actions_secret" "SNYK_TOKEN" {
   secret_name      = "SNYK_TOKEN"
   plaintext_value  = var.snyk_token
 }
+
+# Cloudflare
+resource "github_actions_secret" "CLOUDFLARE_SERVICE_KEY" {
+  repository       = data.github_repository.main.id
+  secret_name      = "CLOUDFLARE_SERVICE_KEY"
+  plaintext_value  = var.cloudflare_service_key
+}
+resource "github_actions_secret" "CLOUDFLARE_ZONE_ID" {
+  repository       = data.github_repository.main.id
+  secret_name      = "CLOUDFLARE_ZONE_ID"
+  plaintext_value  = var.cloudflare_zone_id
+}
+resource "github_actions_secret" "CLOUDFLARE_API_TOKEN" {
+  repository       = data.github_repository.main.id
+  secret_name      = "CLOUDFLARE_API_TOKEN"
+  plaintext_value  = var.cloudflare_api_token
+}

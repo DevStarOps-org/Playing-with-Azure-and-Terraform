@@ -82,6 +82,9 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           github_token: ${{ secrets.GH_TOKEN }}
           snyk_token: ${{ secrets.SNYK_TOKEN }}
+          cloudflare_service_key: ${{ secrets.CLOUDFLARE_SERVICE_KEY }}
+          cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   app_test:
     needs: infra_test
@@ -139,6 +142,9 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           github_token: ${{ secrets.GH_TOKEN }}
           snyk_token: ${{ secrets.SNYK_TOKEN }}
+          cloudflare_service_key: ${{ secrets.CLOUDFLARE_SERVICE_KEY }}
+          cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   app_production:
     needs: [ infra_production, app_test ]

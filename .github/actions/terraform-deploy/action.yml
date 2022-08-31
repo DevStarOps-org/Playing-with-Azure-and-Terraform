@@ -25,7 +25,16 @@ inputs:
     type: string
   snyk_token:
     required: true
+    type: string
+  cloudflare_service_key:
+    required: true
     type: string    
+  cloudflare_zone_id:
+    required: true
+    type: string    
+  cloudflare_api_token:
+    required: true
+    type: string
 
 runs:
   using: "composite"
@@ -54,6 +63,9 @@ runs:
         ARM_TENANT_ID: ${{ inputs.ARM_TENANT_ID }}
         TF_VAR_github_token: ${{ inputs.github_token }}
         TF_VAR_snyk_token: ${{ inputs.snyk_token }}
+        TF_VAR_cloudflare_service_key: ${{ inputs.cloudflare_service_key }}
+        TF_VAR_cloudflare_zone_id: ${{ inputs.cloudflare_zone_id }}
+        TF_VAR_cloudflare_api_token: ${{ inputs.cloudflare_api_token }}
 
     - name: Terraform Apply
       shell: bash
