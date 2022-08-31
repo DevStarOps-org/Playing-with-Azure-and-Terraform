@@ -51,6 +51,10 @@ resource "azurerm_app_service_custom_hostname_binding" "domain" {
   hostname            = var.hostname
   app_service_name    = azurerm_linux_web_app.webapp.name
   resource_group_name = azurerm_resource_group.main.name
+
+  depends_on = [
+    cloudflare_record.txt-verify
+  ]
 }
 
 resource "azurerm_app_service_certificate_binding" "example" {
