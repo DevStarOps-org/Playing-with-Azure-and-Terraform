@@ -45,6 +45,10 @@ resource "azurerm_app_service_certificate" "domain" {
   location            = azurerm_resource_group.main.location
   pfx_blob            = filebase64("resources/domain.pfx")
   password            = random_uuid.pfx_pass.result
+
+  depends_on = [
+    local_sensitive_file.domain_pfx
+  ]
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "domain" {
