@@ -3,7 +3,7 @@ on:
   push:
     branches:
     - main
-    - deploy
+    - demo
     paths-ignore:
       - "*.md"
       - "scripts/**"
